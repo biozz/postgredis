@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  postgredis:
+    # please build it in advance to avoid
+    # connection issue on postgres startup
+    #   docker build -t postgredis:latest .
+    image: postgredis:latest
+    command:
+      - "-addr=:6380"
+      - "-db=postgres://postgres:postgres@db:5432/postgredis"
+      - "-table=postgredis"
+    ports:
+      - "6380:6380"
+    depends_on:
+      - db
+  db:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "postgredis"
