@@ -64,3 +64,7 @@ These Redis commands are supported:
 - implement scan
 - add ttl handling
 - indexing and other query optimizations
+
+## Disclaimer
+
+This is an MIT licensed code, which uses open sourced software. The name of the package is a work-in-progress and I am willing to change it. PostgreSQL and Redis are registered names and I am not affiliated with them.
