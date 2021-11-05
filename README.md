@@ -47,14 +47,9 @@ So I decided to implement PostgreSQL backend for Redis' interface.
 
 When you first start postgredis, it will create a table with two columns: unique `key` and `value`. They both are in [text](https://www.postgresql.org/docs/14/datatype-character.html) format. Unique `key` helps with concise "upsert" queries. Thanks to [pgx](https://github.com/jackc/pgx) I don't have think about how to maintain a connection, I just start a [pool](https://github.com/jackc/pgx/tree/master/pgxpool). There is also a logging of sql queries, which is good for debugging.
 
-These Redis commands are supported:
+## Supported commands
 
-- `SET` - `INSERT` or `UPDATE`, i.e. ["UPSERT" method](https://www.postgresql.org/docs/14/sql-insert.html)
-- `GET` - `SELECT value FROM ... WHERE key = ...`
-- `DEL` - `DELETE FROM ... WHERE key = ...`
-- `KEYS` - although, only `*`-globs are supported with `ILIKE` and `%`, because it is the most common scenario for me (to select keys starting with something)
-- `PING` - `SELECT 1`
-- `QUIT`
+See COMMANDS.md.
 
 ## Future plans
 

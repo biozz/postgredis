@@ -68,7 +68,7 @@ func (s *Server) Handler(conn redcon.Conn, cmd redcon.Command) {
 			),
 		)
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			conn.WriteError(err.Error())
 			return
 		}
@@ -81,10 +81,48 @@ func (s *Server) Handler(conn redcon.Conn, cmd redcon.Command) {
 		var val string
 		err := s.pool.QueryRow(context.Background(), fmt.Sprintf("SELECT value FROM %s WHERE key = '%s'", *table, cmd.Args[1])).Scan(&val)
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			conn.WriteNull()
 		} else {
 			conn.WriteBulk([]byte(val))
+		}
+	case "mget":
+		if len(cmd.Args) < 2 {
+			conn.WriteError("ERR wrong number of arguments for '" + string(cmd.Args[0]) + "' command")
+			return
+		}
+		quotedKeys := make([]string, len(cmd.Args[1:]))
+		for i, arg := range cmd.Args[1:] {
+			quotedKeys[i] = fmt.Sprintf("'%s'", arg)
+		}
+		query := fmt.Sprintf("SELECT key, value FROM %s WHERE key in (%s)", *table, strings.Join(quotedKeys, ","))
+		log.Println(query)
+		rows, err := s.pool.Query(context.Background(), query)
+		if err != nil {
+			conn.WriteError(err.Error())
+			return
+		}
+		conn.WriteArray(len(cmd.Args[1:]))
+		keysFromDb := make(map[string]string)
+		for rows.Next() {
+			var (
+				key   string
+				value string
+			)
+			err = rows.Scan(&key, &value)
+			if err != nil {
+				conn.WriteError(err.Error())
+				return
+			}
+			keysFromDb[key] = value
+		}
+		for _, key := range cmd.Args[1:] {
+			value, ok := keysFromDb[string(key)]
+			if !ok {
+				conn.WriteNull()
+				continue
+			}
+			conn.WriteAny(value)
 		}
 	case "del":
 		if len(cmd.Args) != 2 {
